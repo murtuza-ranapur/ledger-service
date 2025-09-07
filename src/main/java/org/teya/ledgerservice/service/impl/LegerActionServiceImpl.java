@@ -1,0 +1,60 @@
+package org.teya.ledgerservice.service.impl;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.teya.ledgerservice.model.Account;
+import org.teya.ledgerservice.model.Transaction;
+import org.teya.ledgerservice.service.LegerActionService;
+import org.teya.ledgerservice.service.dto.LedgerAction;
+import org.teya.ledgerservice.store.AccountStore;
+
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class LegerActionServiceImpl implements LegerActionService {
+    private final AccountStore accountStore;
+
+    @Override
+    public Transaction performAction(LedgerAction ledgerAction) {
+        var accountOp = accountStore.getAccount(ledgerAction.accountId());
+        if(accountOp.isEmpty()){
+            throw new RuntimeException("Account or user not found");
+        }
+        var account = accountOp.get();
+        if(account.getCurrency() != ledgerAction.currency()){
+            throw new RuntimeException(String.format("Currency %s is not supported for %s account", ledgerAction.currency(), account.getCurrency()));
+        }
+        return switch (ledgerAction.transactionType()){
+            case DEBIT -> withdrawAmount(account, ledgerAction);
+            case CREDIT -> depositAmount(account, ledgerAction);
+        };
+    }
+    
+    public Transaction depositAmount(Account account, LedgerAction ledgerAction) {
+        var transaction = mapToTransaction(ledgerAction);
+        account.addTransaction(transaction);
+        account.addBalance(transaction.getAmount());
+        return transaction;
+    }
+
+    private Transaction mapToTransaction(LedgerAction ledgerAction) {
+        return new Transaction(
+                UUID.randomUUID().toString(),
+                ledgerAction.transactionType(),
+                ledgerAction.currency(),
+                ledgerAction.amount()
+        );
+    }
+
+    public Transaction withdrawAmount(Account account, LedgerAction ledgerAction) {
+        if (account.getAccountBalance().compareTo(ledgerAction.amount()) < 0) {
+            throw new RuntimeException("Insufficient funds");
+        }
+        var transaction = mapToTransaction(ledgerAction);
+        account.addTransaction(transaction);
+        account.subtractBalance(transaction.getAmount());
+        return transaction;
+    }
+    
+}
