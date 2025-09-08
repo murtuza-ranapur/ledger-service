@@ -19,6 +19,7 @@ import org.teya.ledgerservice.model.TransactionType;
 import org.teya.ledgerservice.service.LedgerQueryService;
 import org.teya.ledgerservice.service.LegerActionService;
 import org.teya.ledgerservice.service.dto.LedgerAction;
+import org.teya.ledgerservice.service.exception.LedgerException;
 
 @RestController
 @RequestMapping("/v1/accounts")
@@ -47,7 +48,7 @@ public class LedgerController {
         try {
             var tx = legerActionService.performAction(action);
             return ResponseEntity.ok(ApiResponse.success(new TransactionActionResponse(tx.getId())));
-        } catch (RuntimeException e) {
+        } catch (LedgerException e) {
             log.error("Failed performing transaction", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.failure(e.getMessage()));
@@ -67,7 +68,7 @@ public class LedgerController {
                     ))
                     .toList();
             return ResponseEntity.ok(ApiResponse.success(payload));
-        } catch (RuntimeException e) {
+        } catch (LedgerException e) {
             log.error("Failed fetching accounts", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.failure(e.getMessage()));
@@ -85,7 +86,7 @@ public class LedgerController {
                     Currency.GBP.name()
             );
             return ResponseEntity.ok(ApiResponse.success(payload));
-        } catch (RuntimeException e) {
+        } catch (LedgerException e) {
             log.error("Failed fetching balance", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.failure(e.getMessage()));
@@ -108,7 +109,7 @@ public class LedgerController {
                             Instant.ofEpochMilli(t.getTransactionTime()).toString()
                     )).toList();
             return ResponseEntity.ok(ApiResponse.success(payload));
-        } catch (RuntimeException e) {
+        } catch (LedgerException e) {
             log.error("Failed fetching transactions", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.failure(e.getMessage()));

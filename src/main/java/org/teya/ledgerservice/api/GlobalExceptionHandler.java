@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.validation.FieldError;
 import org.teya.ledgerservice.api.dto.ApiResponse;
+import org.teya.ledgerservice.service.exception.LedgerException;
 
 import java.util.stream.Collectors;
 

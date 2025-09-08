@@ -7,6 +7,7 @@ import org.teya.ledgerservice.model.Transaction;
 import org.teya.ledgerservice.service.LegerActionService;
 import org.teya.ledgerservice.service.dto.LedgerAction;
 import org.teya.ledgerservice.store.AccountStore;
+import org.teya.ledgerservice.service.exception.LedgerException; // added
 
 import java.util.UUID;
 
@@ -19,11 +20,11 @@ public class LegerActionServiceImpl implements LegerActionService {
     public Transaction performAction(LedgerAction ledgerAction) {
         var accountOp = accountStore.getAccount(ledgerAction.accountId());
         if(accountOp.isEmpty()){
-            throw new RuntimeException("Account or user not found");
+            throw new LedgerException("Account or user not found");
         }
         var account = accountOp.get();
         if(account.getCurrency() != ledgerAction.currency()){
-            throw new RuntimeException(String.format("Currency %s is not supported for %s account", ledgerAction.currency(), account.getCurrency()));
+            throw new LedgerException(String.format("Currency %s is not supported for %s account", ledgerAction.currency(), account.getCurrency()));
         }
         return switch (ledgerAction.transactionType()){
             case DEBIT -> withdrawAmount(account, ledgerAction);
@@ -49,7 +50,7 @@ public class LegerActionServiceImpl implements LegerActionService {
 
     public Transaction withdrawAmount(Account account, LedgerAction ledgerAction) {
         if (account.getAccountBalance().compareTo(ledgerAction.amount()) < 0) {
-            throw new RuntimeException("Insufficient funds");
+            throw new LedgerException("Insufficient funds");
         }
         var transaction = mapToTransaction(ledgerAction);
         account.addTransaction(transaction);

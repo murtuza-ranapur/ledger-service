@@ -6,6 +6,7 @@ import org.teya.ledgerservice.model.Account;
 import org.teya.ledgerservice.model.Transaction;
 import org.teya.ledgerservice.service.LedgerQueryService;
 import org.teya.ledgerservice.store.AccountStore;
+import org.teya.ledgerservice.service.exception.LedgerException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,7 +20,7 @@ public class LegerQueryServiceImpl implements LedgerQueryService {
     public BigDecimal checkBalance(String accountId) {
         var accountOp = accountStore.getAccount(accountId);
         if(accountOp.isEmpty()){
-            throw new RuntimeException("Account or user not found");
+            throw new LedgerException("Account or user not found");
         }
         return accountOp.get().getAccountBalance();
     }
@@ -28,7 +29,7 @@ public class LegerQueryServiceImpl implements LedgerQueryService {
     public List<Transaction> getTransactions(String accountId, int limit) {
         var accountOp = accountStore.getAccount(accountId);
         if(accountOp.isEmpty()){
-            throw new RuntimeException("Account or user not found");
+            throw new LedgerException("Account or user not found");
         }
         return accountOp.get().getTransactions(limit);
     }
