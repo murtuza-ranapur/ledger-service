@@ -135,6 +135,7 @@ Sample success response:
 * Account creation is not supported. Two accounts are created by default. (test-account-1, test-account-2)
 * Only GBP currency is supported.
 * Minimum amount for any transaction is 0.01 GBP
+* Maximum amount an account can hold < 100 trillion GBP.
 * Everything is in memory.
 * Only latest 20 transactions are returned for each account.
 * There is no concept of user at the moment, all accounts belong to single hard-coded user at the moment.
