@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class LedgerControllerIntegrationTest {
 
     private static final String ACCOUNT_ID = "test-account-1";
+    private static final String ACCOUNT_ID_2 = "test-account-2";
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -108,5 +109,24 @@ class LedgerControllerIntegrationTest {
         // Transaction 3
         assertEquals("CREDIT", txList.get(2).transactionType());
         assertEquals("10.00", txList.get(2).amount());
+    }
+
+    @Test
+    void creditJustBelowLimit_thenSmallCreditReachingLimitFails() {
+        // First credit to just below max (100000000000000 - 0.01)
+        var nearLimit = new BigDecimal("99999999999999.99");
+        var creditNearLimit = new TransactionActionRequest(ACCOUNT_ID_2, "CREDIT", "GBP", nearLimit);
+        var resp1 = postTransaction(creditNearLimit);
+        assertEquals(HttpStatus.OK, resp1.getStatusCode());
+        assertNotNull(resp1.getBody());
+        assertEquals("SUCCESS", resp1.getBody().status());
+
+        // Second credit of 0.01 should fail (would reach exact limit)
+        var tinyCredit = new TransactionActionRequest(ACCOUNT_ID_2, "CREDIT", "GBP", new BigDecimal("0.01"));
+        var resp2 = postTransaction(tinyCredit);
+        assertEquals(HttpStatus.BAD_REQUEST, resp2.getStatusCode());
+        assertNotNull(resp2.getBody());
+        assertEquals("FAILED", resp2.getBody().status());
+        assertEquals("Balance limit reached: cannot reach or exceed 100000000000000", resp2.getBody().error());
     }
 }

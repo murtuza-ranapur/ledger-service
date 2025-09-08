@@ -9,12 +9,14 @@ import org.teya.ledgerservice.service.dto.LedgerAction;
 import org.teya.ledgerservice.store.AccountStore;
 import org.teya.ledgerservice.service.exception.LedgerException; // added
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class LegerActionServiceImpl implements LegerActionService {
     private final AccountStore accountStore;
+    private static final BigDecimal MAX_BALANCE = new BigDecimal("100000000000000"); // 100 trillion
 
     @Override
     public Transaction performAction(LedgerAction ledgerAction) {
@@ -33,6 +35,10 @@ public class LegerActionServiceImpl implements LegerActionService {
     }
     
     public Transaction depositAmount(Account account, LedgerAction ledgerAction) {
+        var prospective = account.getAccountBalance().add(ledgerAction.amount());
+        if (prospective.compareTo(MAX_BALANCE) >= 0) {
+            throw new LedgerException("Balance limit reached: cannot reach or exceed 100000000000000");
+        }
         var transaction = mapToTransaction(ledgerAction);
         account.addTransaction(transaction);
         account.addBalance(transaction.getAmount());
