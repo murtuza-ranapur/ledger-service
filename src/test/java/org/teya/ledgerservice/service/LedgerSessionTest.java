@@ -18,16 +18,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class LedgerSessionTest {
 
-    private AccountStore store = new AccountStore();
-
-    private LedgerSessionService ledgerSessionService = new LegerSessionServiceImpl(store);
-
-    private LedgerQueryService ledgerQueryService = new LegerQueryServiceImpl(store);
-
-    private LegerActionService legerActionService = new LegerActionServiceImpl(store);
-
     @Test
     void test_session_rollback(){
+        AccountStore store = new AccountStore();
+
+        LedgerSessionService ledgerSessionService = new LegerSessionServiceImpl(store);
+
+        LedgerQueryService ledgerQueryService = new LegerQueryServiceImpl(store);
+
+        LegerActionService legerActionService = new LegerActionServiceImpl(store);
+
         //Start trans
         var accountId = "test-account-1";
         ledgerSessionService.startSession(accountId);
