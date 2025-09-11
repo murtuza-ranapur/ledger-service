@@ -42,6 +42,9 @@ public class LegerActionServiceImpl implements LegerActionService {
         var transaction = mapToTransaction(ledgerAction);
         account.addTransaction(transaction);
         account.addBalance(transaction.getAmount());
+        if(account.isSessionOn()){
+            account.addTransactionToSession(transaction);
+        }
         return transaction;
     }
 
@@ -61,6 +64,9 @@ public class LegerActionServiceImpl implements LegerActionService {
         var transaction = mapToTransaction(ledgerAction);
         account.addTransaction(transaction);
         account.subtractBalance(transaction.getAmount());
+        if(account.isSessionOn()){
+            account.addTransactionToSession(transaction);
+        }
         return transaction;
     }
     

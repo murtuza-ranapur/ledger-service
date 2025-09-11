@@ -1,11 +1,13 @@
 package org.teya.ledgerservice.model;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 public class Account{
     @Getter
@@ -20,6 +22,10 @@ public class Account{
     private final Currency currency;
     private final AccountBalance accountBalance;
     private final LinkedList<Transaction> transactions;
+    @Setter
+    @Getter
+    private boolean isSessionOn = false;
+    private final Stack<Transaction> sessionStack = new Stack<>();
 
     private Account(
             String id,
@@ -56,6 +62,29 @@ public class Account{
     public void addTransaction(Transaction transaction){
         // store newest first
         this.transactions.addFirst(transaction);
+    }
+
+    public void addTransactionToSession(Transaction transaction){
+        sessionStack.push(transaction);
+    }
+
+    public boolean commitSession(){
+        this.isSessionOn = false;
+        return true;
+    }
+
+    public void rollbackSession(){
+        while(!sessionStack.isEmpty() && !transactions.isEmpty()){
+            var transaction = sessionStack.pop();
+            if(transaction.getId().equals(transactions.peek().getId())) {
+                var toRevert = transactions.removeFirst();
+                if(toRevert.getTransactionType() == TransactionType.DEBIT){
+                    addBalance(toRevert.getAmount());
+                } else {
+                    subtractBalance(toRevert.getAmount());
+                }
+            }
+        }
     }
     
     public List<Transaction> getTransactions(int limit){
